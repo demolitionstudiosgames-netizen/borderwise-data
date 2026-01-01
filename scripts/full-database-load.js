@@ -16,6 +16,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const API_URL = 'https://visa-requirement.p.rapidapi.com/v2/visa/check';
 const API_HOST = 'visa-requirement.p.rapidapi.com';
@@ -71,9 +72,37 @@ const PRIORITY_PASSPORTS = [
 // Configuration
 const REQUEST_DELAY_MS = 120; // 120ms = ~8 requests/sec (safe margin under 10/sec)
 const SAVE_INTERVAL = 100;   // Save progress every 100 requests
+const GIT_COMMIT_INTERVAL = 500; // Commit to git every 500 requests - NEVER LOSE MORE THAN 500
 const MAX_RETRIES = 3;
 const BACKOFF_MULTIPLIER = 2;
 const REQUESTS_PER_RUN = 28000; // Leave some buffer under 30k
+
+/**
+ * Commit progress to git - called from within the script
+ * This ensures data is pushed even if the job is killed
+ */
+function gitCommitProgress(requestCount) {
+  try {
+    console.log(`\n  [GIT] Committing ${requestCount} requests to repository...`);
+    execSync('git add data/', { stdio: 'pipe' });
+
+    // Check if there are changes to commit
+    try {
+      execSync('git diff --staged --quiet', { stdio: 'pipe' });
+      console.log('  [GIT] No changes to commit');
+      return;
+    } catch {
+      // There are changes (diff returns non-zero when there are diffs)
+    }
+
+    const commitMsg = `Progress: ${requestCount} requests - ${new Date().toISOString()}`;
+    execSync(`git commit -m "${commitMsg}"`, { stdio: 'pipe' });
+    execSync('git push', { stdio: 'pipe' });
+    console.log('  [GIT] Committed and pushed successfully!\n');
+  } catch (error) {
+    console.error('  [GIT] Failed to commit:', error.message);
+  }
+}
 
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -308,6 +337,11 @@ async function main() {
       console.log(`  [Saved] ${requestsThisRun} requests, ${updated} updated`);
     }
 
+    // GIT COMMIT every 500 requests - CRITICAL: prevents data loss
+    if (requestsThisRun % GIT_COMMIT_INTERVAL === 0) {
+      gitCommitProgress(requestsThisRun);
+    }
+
     await sleep(REQUEST_DELAY_MS);
   }
 
@@ -316,6 +350,9 @@ async function main() {
   progress.totalRequests += requestsThisRun % SAVE_INTERVAL;
   saveProgress(progress);
   saveData(data);
+
+  // Final git commit
+  gitCommitProgress(requestsThisRun);
 
   // Calculate stats
   const passportsCovered = new Set(Object.keys(data.rules)).size;
