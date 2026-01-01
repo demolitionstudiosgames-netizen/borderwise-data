@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-01-01T00:00:00Z",
+  "dataVersion": 1,
+  "rules": {
+    "GB": {
+      "ES": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "FR": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "IT": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "DE": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "PT": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "GR": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "NL": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "BE": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "AT": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "CH": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "US": { "requirement": "visa-free", "duration": 90, "notes": "ESTA required" },
+      "CA": { "requirement": "visa-free", "duration": 180, "notes": "eTA required" },
+      "AU": { "requirement": "visa-free", "duration": 90, "notes": "eVisitor required" },
+      "NZ": { "requirement": "visa-free", "duration": 180, "notes": "NZeTA required" },
+      "JP": { "requirement": "visa-free", "duration": 90, "notes": null },
+      "KR": { "requirement": "visa-free", "duration": 90, "notes": null },
+      "SG": { "requirement": "visa-free", "duration": 90, "notes": null },
+      "TH": { "requirement": "visa-free", "duration": 60, "notes": "Extended from 30 days" },
+      "AE": { "requirement": "visa-free", "duration": 90, "notes": null },
+      "IE": { "requirement": "visa-free", "duration": 90, "notes": "Common Travel Area" },
+      "TR": { "requirement": "visa-free", "duration": 90, "notes": null },
+      "MX": { "requirement": "visa-free", "duration": 180, "notes": null },
+      "BR": { "requirement": "visa-free", "duration": 90, "notes": null },
+      "GH": { "requirement": "visa-required", "duration": null, "notes": "Visa must be obtained before travel" }
+    },
+    "US": {
+      "ES": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "FR": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "IT": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "DE": { "requirement": "visa-free", "duration": 90, "notes": "Schengen 90/180 rule" },
+      "GB": { "requirement": "visa-free", "duration": 180, "notes": null },
+      "JP": { "requirement": "visa-free", "duration": 90, "notes": null },
+      "KR": { "requirement": "visa-free", "duration": 90, "notes": null },
+      "AU": { "requirement": "visa-free", "duration": 90, "notes": "ETA required" },
+      "CA": { "requirement": "visa-free", "duration": 180, "notes": null },
+      "MX": { "requirement": "visa-free", "duration": 180, "notes": null },
+      "TH": { "requirement": "visa-free", "duration": 60, "notes": null }
+    },
+    "NG": {
+      "GH": { "requirement": "visa-free", "duration": 90, "notes": "ECOWAS member" },
+      "KE": { "requirement": "e-visa", "duration": 90, "notes": "eVisa required" },
+      "ZA": { "requirement": "visa-required", "duration": null, "notes": "Visa required" },
+      "GB": { "requirement": "visa-required", "duration": null, "notes": "Visa required" },
+      "US": { "requirement": "visa-required", "duration": null, "notes": "B1/B2 visa required" },
+      "AE": { "requirement": "visa-on-arrival", "duration": 30, "notes": null },
+      "TH": { "requirement": "visa-on-arrival", "duration": 15, "notes": null }
+    },
+    "GH": {
+      "NG": { "requirement": "visa-free", "duration": 90, "notes": "ECOWAS member" },
+      "KE": { "requirement": "e-visa", "duration": 90, "notes": "eVisa required" },
+      "ZA": { "requirement": "visa-required", "duration": null, "notes": "Visa required" },
+      "GB": { "requirement": "visa-required", "duration": null, "notes": "Visa required" },
+      "US": { "requirement": "visa-required", "duration": null, "notes": "B1/B2 visa required" },
+      "AE": { "requirement": "visa-on-arrival", "duration": 30, "notes": null }
+    },
+    "IN": {
+      "TH": { "requirement": "visa-on-arrival", "duration": 15, "notes": null },
+      "SG": { "requirement": "visa-free", "duration": 30, "notes": null },
+      "MY": { "requirement": "visa-free", "duration": 30, "notes": null },
+      "AE": { "requirement": "visa-on-arrival", "duration": 14, "notes": null },
+      "GB": { "requirement": "visa-required", "duration": null, "notes": "Visa required" },
+      "US": { "requirement": "visa-required", "duration": null, "notes": "B1/B2 visa required" },
+      "JP": { "requirement": "visa-required", "duration": null, "notes": "Visa required" }
+    }
+  }
+}
