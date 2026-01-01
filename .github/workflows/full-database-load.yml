@@ -1,0 +1,32 @@
+name: Full Database Load (Ultra Tier)
+
+on:
+  workflow_dispatch:
+    # Manual trigger only - this is for the initial comprehensive load
+
+jobs:
+  full-database-load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120  # 2 hours max (should complete faster)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run full database load
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+        run: node scripts/full-database-load.js
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --staged --quiet || git commit -m "Full database load $(date +'%Y-%m-%d %H:%M')"
+          git push
