@@ -1,0 +1,42 @@
+name: Test Database Load (100 requests)
+
+on:
+  workflow_dispatch:
+    # Manual trigger only - test to verify commits work
+
+jobs:
+  test-load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure git for commits
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run test load (100 requests)
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+        run: node scripts/test-database-load.js
+
+      - name: Commit results
+        run: |
+          git add data/
+          if ! git diff --staged --quiet; then
+            git commit -m "Test load: $(date +'%Y-%m-%d %H:%M') - verified commit works"
+            git push
+            echo "SUCCESS: Data committed and pushed!"
+          else
+            echo "No changes to commit"
+          fi
