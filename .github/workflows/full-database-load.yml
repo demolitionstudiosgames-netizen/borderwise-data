@@ -7,7 +7,7 @@ on:
 jobs:
   full-database-load:
     runs-on: ubuntu-latest
-    timeout-minutes: 120  # 2 hours max (should complete faster)
+    timeout-minutes: 350  # ~5.5 hours (under GitHub's 6-hour max)
 
     steps:
       - name: Checkout repository
@@ -18,15 +18,39 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run full database load
-        env:
-          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
-        run: node scripts/full-database-load.js
-
-      - name: Commit and push changes
+      - name: Configure git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Run full database load with periodic commits
+        env:
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
+        run: |
+          # Function to commit progress
+          commit_progress() {
+            echo "Committing progress..."
+            git add data/
+            if ! git diff --staged --quiet; then
+              git commit -m "Database load progress $(date +'%Y-%m-%d %H:%M') - auto-save"
+              git push
+              echo "Progress committed and pushed!"
+            else
+              echo "No changes to commit"
+            fi
+          }
+
+          # Commit on script exit (including timeout/interrupt)
+          trap commit_progress EXIT
+
+          # Run the actual script
+          node scripts/full-database-load.js
+
+      - name: Final commit (if needed)
+        if: always()
+        run: |
           git add data/
-          git diff --staged --quiet || git commit -m "Full database load $(date +'%Y-%m-%d %H:%M')"
-          git push
+          if ! git diff --staged --quiet; then
+            git commit -m "Full database load $(date +'%Y-%m-%d %H:%M')"
+            git push
+          fi
