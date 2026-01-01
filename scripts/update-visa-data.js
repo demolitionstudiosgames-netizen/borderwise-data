@@ -51,9 +51,11 @@ const PRIORITY_PAIRS = [
 ];
 
 const REQUESTS_PER_RUN = 30;
-const REQUEST_DELAY_MS = 2000; // 2 seconds between requests (safety margin)
+const REQUEST_DELAY_MS = 3000; // 3 seconds between requests (safety margin)
+const MAX_RETRIES = 3;
+const BACKOFF_MULTIPLIER = 2;
 
-async function checkVisaRequirement(passport, destination) {
+async function checkVisaRequirement(passport, destination, retryCount = 0) {
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -69,7 +71,14 @@ async function checkVisaRequirement(passport, destination) {
     });
 
     if (response.status === 429) {
-      console.log(`\n!! Rate limited - stopping immediately`);
+      // Rate limited - try exponential backoff before giving up
+      if (retryCount < MAX_RETRIES) {
+        const backoffMs = REQUEST_DELAY_MS * Math.pow(BACKOFF_MULTIPLIER, retryCount + 1);
+        console.log(`  Rate limited, waiting ${backoffMs/1000}s before retry ${retryCount + 1}/${MAX_RETRIES}...`);
+        await sleep(backoffMs);
+        return checkVisaRequirement(passport, destination, retryCount + 1);
+      }
+      console.log(`\n!! Rate limit persists after ${MAX_RETRIES} retries - stopping`);
       return { rateLimited: true };
     }
 
@@ -85,7 +94,14 @@ async function checkVisaRequirement(passport, destination) {
       notes: data.notes || data.additional_info || null,
     };
   } catch (error) {
-    console.error(`Failed ${passport}->${destination}: ${error.message}`);
+    // Network errors - retry with backoff
+    if (retryCount < MAX_RETRIES) {
+      const backoffMs = REQUEST_DELAY_MS * Math.pow(BACKOFF_MULTIPLIER, retryCount);
+      console.log(`  Network error, retrying in ${backoffMs/1000}s (${retryCount + 1}/${MAX_RETRIES})...`);
+      await sleep(backoffMs);
+      return checkVisaRequirement(passport, destination, retryCount + 1);
+    }
+    console.error(`Failed ${passport}->${destination} after ${MAX_RETRIES} retries: ${error.message}`);
     return null;
   }
 }
@@ -155,7 +171,10 @@ function saveData(data) {
 
 async function main() {
   console.log('=== Visa Data Update ===');
+  console.log(`Date: ${new Date().toISOString()}`);
   console.log(`Budget: ${REQUESTS_PER_RUN} requests this run`);
+  console.log(`Delay between requests: ${REQUEST_DELAY_MS/1000}s`);
+  console.log(`Retry strategy: ${MAX_RETRIES} retries with ${BACKOFF_MULTIPLIER}x backoff`);
   console.log(`Total priority pairs: ${PRIORITY_PAIRS.length}`);
   console.log();
 
