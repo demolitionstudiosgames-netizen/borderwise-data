@@ -38,6 +38,7 @@ jobs:
           git add data/
           if ! git diff --staged --quiet; then
             git commit -m "Test load: $(date +'%Y-%m-%d %H:%M') - verified commit works"
+            git pull --rebase
             git push
             echo "SUCCESS: Data committed and pushed!"
           else

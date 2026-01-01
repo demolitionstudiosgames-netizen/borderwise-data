@@ -36,6 +36,7 @@ jobs:
             git add data/
             if ! git diff --staged --quiet; then
               git commit -m "Database load progress $(date +'%Y-%m-%d %H:%M') - auto-save"
+              git pull --rebase || true
               git push
               echo "Progress committed and pushed!"
             else
@@ -55,5 +56,6 @@ jobs:
           git add data/
           if ! git diff --staged --quiet; then
             git commit -m "Full database load $(date +'%Y-%m-%d %H:%M')"
+            git pull --rebase || true
             git push
           fi
