@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
     # Manual trigger only - this is for the initial comprehensive load
 
+permissions:
+  contents: write
+
 jobs:
   full-database-load:
     runs-on: ubuntu-latest

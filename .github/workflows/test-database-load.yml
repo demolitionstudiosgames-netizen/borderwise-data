@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
     # Manual trigger only - test to verify commits work
 
+permissions:
+  contents: write
+
 jobs:
   test-load:
     runs-on: ubuntu-latest
