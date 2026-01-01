@@ -1,11 +1,14 @@
 /**
  * Update Visa Data Script
  *
- * CONSERVATIVE version - respects strict API rate limits.
- * Processes only a few passports per run and saves progress.
- * Multiple runs will build up the complete dataset over time.
+ * STRATEGY FOR 120 REQUESTS/MONTH LIMIT:
+ * - Weekly runs = 4 runs per month
+ * - 30 requests per run maximum
+ * - Focus on verifying/updating existing static data
+ * - Prioritize most-used passport/destination pairs
  *
- * Free tier typically allows ~100 requests/day or similar.
+ * The app primarily uses comprehensive static data.
+ * API calls are for verification and keeping data fresh.
  */
 
 const fs = require('fs');
@@ -21,32 +24,34 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-// All passports we want to support (will process over multiple runs)
-const ALL_PASSPORTS = [
-  'GB', 'US', 'CA', 'AU', 'NZ', 'IE',
-  'DE', 'FR', 'IT', 'ES', 'NL', 'SE', 'NO', 'DK', 'FI', 'CH', 'AT', 'BE', 'PT', 'PL',
-  'JP', 'KR', 'SG', 'MY', 'IN', 'CN', 'PH', 'TH', 'ID', 'VN',
-  'AE', 'SA', 'QA',
-  'ZA', 'NG', 'GH', 'KE', 'EG',
-  'BR', 'MX', 'AR',
+// Priority pairs to keep fresh (most used combinations)
+// With 30 requests per week, we rotate through these
+const PRIORITY_PAIRS = [
+  // UK to popular destinations
+  ['GB', 'ES'], ['GB', 'FR'], ['GB', 'TH'], ['GB', 'US'], ['GB', 'GR'],
+  ['GB', 'PT'], ['GB', 'IT'], ['GB', 'AE'], ['GB', 'JP'], ['GB', 'AU'],
+  // US to popular destinations
+  ['US', 'GB'], ['US', 'MX'], ['US', 'JP'], ['US', 'FR'], ['US', 'IT'],
+  ['US', 'TH'], ['US', 'ES'], ['US', 'DE'], ['US', 'CA'], ['US', 'AU'],
+  // Nigeria to common destinations
+  ['NG', 'GB'], ['NG', 'US'], ['NG', 'AE'], ['NG', 'GH'], ['NG', 'ZA'],
+  // India to common destinations
+  ['IN', 'AE'], ['IN', 'SG'], ['IN', 'TH'], ['IN', 'GB'], ['IN', 'US'],
+  // Ghana to common destinations
+  ['GH', 'GB'], ['GH', 'US'], ['GH', 'NG'], ['GH', 'AE'], ['GH', 'ZA'],
+  // South Africa
+  ['ZA', 'GB'], ['ZA', 'US'], ['ZA', 'AE'], ['ZA', 'TH'], ['ZA', 'MU'],
+  // Other popular pairs
+  ['DE', 'US'], ['DE', 'TH'], ['DE', 'JP'],
+  ['AU', 'US'], ['AU', 'GB'], ['AU', 'TH'],
+  ['JP', 'US'], ['JP', 'GB'], ['JP', 'TH'],
+  ['SG', 'US'], ['SG', 'GB'], ['SG', 'AU'],
+  ['BR', 'US'], ['BR', 'PT'], ['BR', 'JP'],
+  ['MX', 'US'], ['MX', 'ES'], ['MX', 'CA'],
 ];
 
-// Top destinations
-const DESTINATION_COUNTRIES = [
-  // Schengen (27)
-  'AT', 'BE', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU',
-  'IS', 'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'NO', 'PL', 'PT',
-  'SK', 'SI', 'ES', 'SE', 'CH', 'HR', 'BG', 'RO',
-  // Other important (25)
-  'GB', 'IE', 'US', 'CA', 'AU', 'NZ', 'JP', 'KR', 'SG', 'TH',
-  'VN', 'MY', 'ID', 'PH', 'IN', 'AE', 'QA', 'SA', 'TR', 'EG',
-  'MA', 'ZA', 'KE', 'BR', 'MX',
-];
-
-// VERY conservative rate limiting
-const PASSPORTS_PER_RUN = 2;        // Only process 2 passports per weekly run
-const REQUEST_DELAY_MS = 1000;      // 1 second between requests
-const BATCH_SIZE = 1;               // One request at a time
+const REQUESTS_PER_RUN = 30;
+const REQUEST_DELAY_MS = 2000; // 2 seconds between requests (safety margin)
 
 async function checkVisaRequirement(passport, destination) {
   try {
@@ -64,25 +69,23 @@ async function checkVisaRequirement(passport, destination) {
     });
 
     if (response.status === 429) {
-      console.log(`\nRate limited! Stopping to preserve quota.`);
+      console.log(`\n!! Rate limited - stopping immediately`);
       return { rateLimited: true };
     }
 
     if (!response.ok) {
-      console.warn(`API error for ${passport}->${destination}: ${response.status}`);
+      console.warn(`Error ${passport}->${destination}: ${response.status}`);
       return null;
     }
 
     const data = await response.json();
     return {
-      passport,
-      destination,
       requirement: normalizeRequirement(data.requirement || data.visa_requirement),
       duration: data.duration || data.stay_duration || data.allowed_stay || null,
       notes: data.notes || data.additional_info || null,
     };
   } catch (error) {
-    console.error(`Failed: ${passport}->${destination}: ${error.message}`);
+    console.error(`Failed ${passport}->${destination}: ${error.message}`);
     return null;
   }
 }
@@ -113,17 +116,9 @@ async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function loadExistingData() {
-  const outputPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
-  try {
-    if (fs.existsSync(outputPath)) {
-      const data = JSON.parse(fs.readFileSync(outputPath, 'utf8'));
-      return data.rules || {};
-    }
-  } catch (error) {
-    console.log('No existing data, starting fresh');
-  }
-  return {};
+function loadData() {
+  const dataPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
+  return JSON.parse(fs.readFileSync(dataPath, 'utf8'));
 }
 
 function loadProgress() {
@@ -132,129 +127,110 @@ function loadProgress() {
     if (fs.existsSync(progressPath)) {
       return JSON.parse(fs.readFileSync(progressPath, 'utf8'));
     }
-  } catch (error) {
-    console.log('No progress file, starting from beginning');
-  }
-  return { lastPassportIndex: 0 };
+  } catch (error) {}
+  return { lastIndex: 0, lastRun: null };
 }
 
-function saveProgress(lastPassportIndex) {
+function saveProgress(index) {
   const progressPath = path.join(__dirname, '..', 'data', 'progress.json');
-  fs.writeFileSync(progressPath, JSON.stringify({ lastPassportIndex, updatedAt: new Date().toISOString() }));
+  fs.writeFileSync(progressPath, JSON.stringify({
+    lastIndex: index,
+    lastRun: new Date().toISOString(),
+  }, null, 2));
 }
 
-function saveData(visaRules) {
-  const outputPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
-  const outputData = {
-    version: '1.0.0',
-    lastUpdated: new Date().toISOString(),
-    dataVersion: Date.now(),
-    rules: visaRules,
-  };
-  fs.writeFileSync(outputPath, JSON.stringify(outputData, null, 2));
+function saveData(data) {
+  const dataPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
+  data.lastUpdated = new Date().toISOString();
+  data.dataVersion = Date.now();
+  fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
 
   const versionPath = path.join(__dirname, '..', 'data', 'version.json');
   fs.writeFileSync(versionPath, JSON.stringify({
-    version: '1.0.0',
-    lastUpdated: new Date().toISOString(),
-    dataVersion: Date.now(),
-  }));
+    version: data.version,
+    lastUpdated: data.lastUpdated,
+    dataVersion: data.dataVersion,
+  }, null, 2));
 }
 
 async function main() {
-  console.log('=== Visa Data Update (Conservative Mode) ===\n');
+  console.log('=== Visa Data Update ===');
+  console.log(`Budget: ${REQUESTS_PER_RUN} requests this run`);
+  console.log(`Total priority pairs: ${PRIORITY_PAIRS.length}`);
+  console.log();
 
-  const visaRules = loadExistingData();
+  const data = loadData();
   const progress = loadProgress();
 
-  // Determine which passports to process this run
-  let startIndex = progress.lastPassportIndex % ALL_PASSPORTS.length;
-  const passportsToProcess = ALL_PASSPORTS.slice(startIndex, startIndex + PASSPORTS_PER_RUN);
+  // Determine which pairs to check this run
+  let startIndex = progress.lastIndex % PRIORITY_PAIRS.length;
+  const pairsToCheck = PRIORITY_PAIRS.slice(startIndex, startIndex + REQUESTS_PER_RUN);
 
-  if (passportsToProcess.length === 0) {
-    // Wrap around
-    startIndex = 0;
-    passportsToProcess.push(...ALL_PASSPORTS.slice(0, PASSPORTS_PER_RUN));
+  // If we don't have enough, wrap around
+  if (pairsToCheck.length < REQUESTS_PER_RUN) {
+    pairsToCheck.push(...PRIORITY_PAIRS.slice(0, REQUESTS_PER_RUN - pairsToCheck.length));
   }
 
-  console.log(`Processing ${passportsToProcess.length} passports: ${passportsToProcess.join(', ')}`);
-  console.log(`Destinations: ${DESTINATION_COUNTRIES.length}`);
-  console.log(`Start index: ${startIndex}\n`);
+  console.log(`Checking ${pairsToCheck.length} pairs starting from index ${startIndex}`);
+  console.log();
 
-  let totalSuccess = 0;
-  let totalError = 0;
+  let updated = 0;
+  let unchanged = 0;
+  let errors = 0;
   let rateLimited = false;
+  let actualRequests = 0;
 
-  for (const passport of passportsToProcess) {
+  for (const [passport, destination] of pairsToCheck) {
     if (rateLimited) break;
 
-    console.log(`\n[${passport}] Processing...`);
-    if (!visaRules[passport]) {
-      visaRules[passport] = {};
+    const result = await checkVisaRequirement(passport, destination);
+    actualRequests++;
+
+    if (result?.rateLimited) {
+      rateLimited = true;
+      break;
     }
 
-    const destinations = DESTINATION_COUNTRIES.filter(d => d !== passport);
-    let passportSuccess = 0;
-
-    for (const destination of destinations) {
-      if (rateLimited) break;
-
-      // Skip if we already have this data
-      if (visaRules[passport][destination]) {
-        process.stdout.write('s');
-        continue;
+    if (result) {
+      // Initialize passport if needed
+      if (!data.rules[passport]) {
+        data.rules[passport] = {};
       }
 
-      const result = await checkVisaRequirement(passport, destination);
+      const existing = data.rules[passport][destination];
+      const changed = !existing ||
+        existing.requirement !== result.requirement ||
+        existing.duration !== result.duration;
 
-      if (result?.rateLimited) {
-        rateLimited = true;
-        console.log('\n!! Rate limit hit - stopping and saving progress');
-        break;
-      }
-
-      if (result) {
-        visaRules[passport][destination] = {
-          requirement: result.requirement,
-          duration: result.duration,
-          notes: result.notes,
-        };
-        passportSuccess++;
-        totalSuccess++;
-        process.stdout.write('.');
+      if (changed) {
+        data.rules[passport][destination] = result;
+        console.log(`[UPDATED] ${passport}->${destination}: ${result.requirement} (${result.duration || '-'} days)`);
+        updated++;
       } else {
-        totalError++;
-        process.stdout.write('x');
+        console.log(`[OK] ${passport}->${destination}: ${result.requirement}`);
+        unchanged++;
       }
-
-      // Wait between requests
-      await sleep(REQUEST_DELAY_MS);
+    } else {
+      console.log(`[ERROR] ${passport}->${destination}`);
+      errors++;
     }
 
-    console.log(` +${passportSuccess} (total: ${Object.keys(visaRules[passport]).length})`);
+    await sleep(REQUEST_DELAY_MS);
   }
 
-  // Save progress for next run
-  const nextIndex = rateLimited
-    ? startIndex  // Don't advance if rate limited
-    : (startIndex + PASSPORTS_PER_RUN) % ALL_PASSPORTS.length;
-
+  // Save progress
+  const nextIndex = rateLimited ? startIndex : (startIndex + actualRequests) % PRIORITY_PAIRS.length;
   saveProgress(nextIndex);
-  saveData(visaRules);
+  saveData(data);
 
-  // Summary
-  console.log('\n=== Summary ===');
-  console.log(`New entries: ${totalSuccess}`);
-  console.log(`Errors: ${totalError}`);
-  console.log(`Rate limited: ${rateLimited ? 'Yes' : 'No'}`);
-  console.log(`Next run starts at index: ${nextIndex} (${ALL_PASSPORTS[nextIndex] || ALL_PASSPORTS[0]})`);
-
-  // Count total coverage
-  let totalEntries = 0;
-  for (const passport of Object.keys(visaRules)) {
-    totalEntries += Object.keys(visaRules[passport]).length;
-  }
-  console.log(`Total database entries: ${totalEntries}`);
+  console.log();
+  console.log('=== Summary ===');
+  console.log(`Requests made: ${actualRequests}`);
+  console.log(`Updated: ${updated}`);
+  console.log(`Unchanged: ${unchanged}`);
+  console.log(`Errors: ${errors}`);
+  console.log(`Rate limited: ${rateLimited ? 'YES' : 'No'}`);
+  console.log(`Next run starts at index: ${nextIndex}`);
 }
 
 main().catch(error => {
