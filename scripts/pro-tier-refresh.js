@@ -1,15 +1,29 @@
 /**
- * Pro Tier Refresh Script - $4.99/month
+ * Pro Tier Smart Refresh Script - $4.99/month
  *
- * STRATEGY:
- * - 3,000 requests/month available
- * - 1 request/second rate limit (STRICT)
- * - Focus on refreshing priority passports (most likely users)
- * - Rotates through destinations each month
+ * SMART REFRESH STRATEGY:
+ * ========================
+ * Problem: 39,402 pairs to keep fresh with only 3,000 requests/month
+ * Solution: Age-based prioritization with rolling refresh
  *
- * With 199 destinations per passport and 3,000 requests/month:
- * - Can fully refresh ~15 passports per month
- * - Prioritizes most common user passports
+ * HOW IT WORKS:
+ * 1. Scans ALL existing entries and sorts by lastChecked date (oldest first)
+ * 2. SKIPS any entry updated within the last 30 days (fresh enough)
+ * 3. Prioritizes entries that are 60+ days old (most stale)
+ * 4. Then fills remaining quota with 30-60 day old entries
+ *
+ * MATH:
+ * - 39,402 total pairs
+ * - 3,000 requests/month
+ * - Full cycle = ~13 months
+ * - Each entry refreshed roughly every 13 months
+ * - Nothing should go more than ~14 months without refresh
+ *
+ * PRIORITY ORDER:
+ * 1. Entries 60+ days old (CRITICAL - refresh these first)
+ * 2. Entries 30-60 days old (STALE - refresh if quota remains)
+ * 3. Entries <30 days old (FRESH - skip entirely)
+ * 4. Missing entries (no data yet - fill gaps)
  */
 
 const fs = require('fs');
@@ -24,7 +38,7 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-// All 199 country codes (destinations)
+// All 199 country codes
 const ALL_COUNTRIES = [
   'AF', 'AL', 'DZ', 'AD', 'AO', 'AG', 'AR', 'AM', 'AU', 'AT', 'AZ',
   'BS', 'BH', 'BD', 'BB', 'BY', 'BE', 'BZ', 'BJ', 'BT', 'BO', 'BA', 'BW', 'BR', 'BN', 'BG', 'BF', 'BI',
@@ -52,30 +66,134 @@ const ALL_COUNTRIES = [
   'ZM', 'ZW'
 ];
 
-// Priority passports - most likely user passports (ordered by priority)
-// These will be refreshed on a rotating basis
+// Priority passports - these get weighted higher when sorting
 const PRIORITY_PASSPORTS = [
-  // Tier 1 - Most common users (refresh every month if possible)
-  'GB', 'US', 'NG', 'GH', 'IN', 'PK',
-  // Tier 2 - Common users
-  'CA', 'AU', 'IE', 'NZ', 'ZA', 'KE', 'JM',
-  // Tier 3 - Other significant
-  'BD', 'PH', 'EG', 'MA', 'TT', 'SL', 'ZM', 'UG',
-  // Tier 4 - Additional African/Caribbean diaspora
-  'CM', 'SN', 'CI', 'TZ', 'ET', 'RW', 'BB', 'GD',
-  // Tier 5 - European/Asian
-  'DE', 'FR', 'IT', 'ES', 'NL', 'PL', 'CN', 'JP', 'KR',
+  'GB', 'US', 'NG', 'GH', 'IN', 'PK', 'CA', 'AU', 'IE', 'NZ', 'ZA', 'KE', 'JM',
+  'BD', 'PH', 'EG', 'MA', 'TT', 'SL', 'ZM', 'UG', 'CM', 'SN', 'CI', 'TZ', 'ET',
 ];
 
-// Configuration for Pro tier
-const REQUEST_DELAY_MS = 1100; // 1.1 seconds (safely under 1 req/sec limit)
-const REQUESTS_PER_RUN = 2800; // Leave buffer under 3,000
-const SAVE_INTERVAL = 50;      // Save progress every 50 requests
+// Configuration for Pro tier (1 request/second)
+const REQUEST_DELAY_MS = 1100;  // 1.1 seconds (safely under 1 req/sec)
+const REQUESTS_PER_RUN = 2800;  // Leave buffer under 3,000
+const SAVE_INTERVAL = 50;       // Save progress every 50 requests
 const MAX_RETRIES = 3;
 const BACKOFF_MULTIPLIER = 2;
 
+// Age thresholds (in days)
+const FRESH_THRESHOLD_DAYS = 30;    // Skip if updated within 30 days
+const STALE_THRESHOLD_DAYS = 60;    // Priority refresh if older than 60 days
+
 async function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getDaysSinceUpdate(lastChecked) {
+  if (!lastChecked) return Infinity; // Never checked = infinitely old
+  const lastDate = new Date(lastChecked);
+  const now = new Date();
+  const diffMs = now - lastDate;
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function loadData() {
+  const dataPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
+  try {
+    return JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  } catch {
+    return {
+      version: '3.0.0',
+      lastUpdated: null,
+      dataVersion: 0,
+      source: 'Mixed sources',
+      rules: {},
+    };
+  }
+}
+
+function saveData(data) {
+  const dataPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
+  data.lastUpdated = new Date().toISOString();
+  data.dataVersion = Date.now();
+  fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
+
+  const versionPath = path.join(__dirname, '..', 'data', 'version.json');
+  fs.writeFileSync(versionPath, JSON.stringify({
+    version: data.version,
+    lastUpdated: data.lastUpdated,
+    dataVersion: data.dataVersion,
+  }, null, 2));
+}
+
+/**
+ * Analyze database and generate prioritized refresh queue
+ */
+function generateRefreshQueue(data) {
+  const queue = [];
+  const stats = {
+    total: 0,
+    fresh: 0,      // <30 days - SKIP
+    stale: 0,      // 30-60 days
+    critical: 0,   // 60+ days
+    missing: 0,    // No data
+  };
+
+  const now = new Date();
+
+  // Check all possible passport-destination pairs
+  for (const passport of ALL_COUNTRIES) {
+    for (const destination of ALL_COUNTRIES) {
+      if (passport === destination) continue;
+      stats.total++;
+
+      const entry = data.rules[passport]?.[destination];
+      const lastChecked = entry?.lastChecked;
+      const daysSince = getDaysSinceUpdate(lastChecked);
+
+      // Categorize and potentially add to queue
+      if (!lastChecked) {
+        // Missing - needs data
+        stats.missing++;
+        queue.push({
+          passport,
+          destination,
+          daysSince: Infinity,
+          priority: PRIORITY_PASSPORTS.includes(passport) ? 1 : 2,
+          category: 'missing',
+        });
+      } else if (daysSince >= STALE_THRESHOLD_DAYS) {
+        // Critical - 60+ days old
+        stats.critical++;
+        queue.push({
+          passport,
+          destination,
+          daysSince,
+          priority: PRIORITY_PASSPORTS.includes(passport) ? 1 : 2,
+          category: 'critical',
+        });
+      } else if (daysSince >= FRESH_THRESHOLD_DAYS) {
+        // Stale - 30-60 days old
+        stats.stale++;
+        queue.push({
+          passport,
+          destination,
+          daysSince,
+          priority: PRIORITY_PASSPORTS.includes(passport) ? 3 : 4,
+          category: 'stale',
+        });
+      } else {
+        // Fresh - skip
+        stats.fresh++;
+      }
+    }
+  }
+
+  // Sort queue: priority first, then by age (oldest first)
+  queue.sort((a, b) => {
+    if (a.priority !== b.priority) return a.priority - b.priority;
+    return b.daysSince - a.daysSince; // Older first
+  });
+
+  return { queue, stats };
 }
 
 async function checkVisaRequirement(passport, destination, retryCount = 0) {
@@ -149,182 +267,138 @@ function normalizeRequirement(requirement) {
   return 'unknown';
 }
 
-function loadData() {
-  const dataPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
-  try {
-    return JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-  } catch {
-    return {
-      version: '3.0.0',
-      lastUpdated: null,
-      dataVersion: 0,
-      source: 'Mixed sources',
-      rules: {},
-    };
-  }
-}
-
-function loadProgress() {
-  const progressPath = path.join(__dirname, '..', 'data', 'pro-refresh-progress.json');
-  try {
-    if (fs.existsSync(progressPath)) {
-      return JSON.parse(fs.readFileSync(progressPath, 'utf8'));
-    }
-  } catch {}
-  return {
-    lastRefreshMonth: null,
-    passportIndex: 0,      // Which passport in PRIORITY_PASSPORTS to start from
-    destinationIndex: 0,   // Which destination to start from for current passport
-    totalRequestsThisMonth: 0,
-  };
-}
-
-function saveProgress(progress) {
-  const progressPath = path.join(__dirname, '..', 'data', 'pro-refresh-progress.json');
-  fs.writeFileSync(progressPath, JSON.stringify(progress, null, 2));
-}
-
-function saveData(data) {
-  const dataPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
-  data.lastUpdated = new Date().toISOString();
-  data.dataVersion = Date.now();
-  fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
-
-  const versionPath = path.join(__dirname, '..', 'data', 'version.json');
-  fs.writeFileSync(versionPath, JSON.stringify({
-    version: data.version,
-    lastUpdated: data.lastUpdated,
-    dataVersion: data.dataVersion,
-  }, null, 2));
-}
-
-function getCurrentMonth() {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-}
-
 async function main() {
-  console.log('=== Pro Tier Refresh ($4.99/month) ===');
+  console.log('==============================================');
+  console.log('  Pro Tier SMART Refresh ($4.99/month)');
+  console.log('==============================================');
   console.log(`Date: ${new Date().toISOString()}`);
   console.log(`Rate limit: 1 request/second`);
   console.log(`Max requests this run: ${REQUESTS_PER_RUN}`);
-  console.log(`Priority passports: ${PRIORITY_PASSPORTS.length}`);
   console.log();
 
   const data = loadData();
-  const progress = loadProgress();
-  const currentMonth = getCurrentMonth();
 
-  // Reset progress if new month
-  if (progress.lastRefreshMonth !== currentMonth) {
-    console.log(`New month detected (${currentMonth}). Resetting progress.`);
-    progress.lastRefreshMonth = currentMonth;
-    progress.passportIndex = 0;
-    progress.destinationIndex = 0;
-    progress.totalRequestsThisMonth = 0;
-  }
+  // Analyze database and generate refresh queue
+  console.log('Analyzing database for stale entries...');
+  const { queue, stats } = generateRefreshQueue(data);
 
-  console.log(`Starting from passport index: ${progress.passportIndex} (${PRIORITY_PASSPORTS[progress.passportIndex]})`);
-  console.log(`Starting from destination index: ${progress.destinationIndex}`);
-  console.log(`Requests already made this month: ${progress.totalRequestsThisMonth}`);
+  console.log();
+  console.log('=== Database Age Analysis ===');
+  console.log(`Total pairs: ${stats.total.toLocaleString()}`);
+  console.log(`Fresh (<${FRESH_THRESHOLD_DAYS} days): ${stats.fresh.toLocaleString()} - SKIPPING`);
+  console.log(`Stale (${FRESH_THRESHOLD_DAYS}-${STALE_THRESHOLD_DAYS} days): ${stats.stale.toLocaleString()}`);
+  console.log(`Critical (${STALE_THRESHOLD_DAYS}+ days): ${stats.critical.toLocaleString()}`);
+  console.log(`Missing (no data): ${stats.missing.toLocaleString()}`);
+  console.log();
+  console.log(`Entries needing refresh: ${queue.length.toLocaleString()}`);
+  console.log(`Will process: ${Math.min(queue.length, REQUESTS_PER_RUN).toLocaleString()} this run`);
   console.log();
 
+  if (queue.length === 0) {
+    console.log('All entries are fresh! Nothing to refresh.');
+    return;
+  }
+
+  // Process the queue
   let requestsThisRun = 0;
   let updated = 0;
   let errors = 0;
   let rateLimited = false;
 
-  // Process passports in priority order
-  for (let pIdx = progress.passportIndex; pIdx < PRIORITY_PASSPORTS.length; pIdx++) {
-    if (rateLimited || requestsThisRun >= REQUESTS_PER_RUN) break;
+  const categoriesToProcess = { missing: 0, critical: 0, stale: 0 };
+  const pairsToProcess = queue.slice(0, REQUESTS_PER_RUN);
 
-    const passport = PRIORITY_PASSPORTS[pIdx];
-    console.log(`\nProcessing ${passport} (priority ${pIdx + 1}/${PRIORITY_PASSPORTS.length})...`);
+  console.log('Starting refresh...');
+  console.log();
 
-    // Initialize passport in data if needed
-    if (!data.rules[passport]) {
-      data.rules[passport] = {};
+  for (let i = 0; i < pairsToProcess.length; i++) {
+    if (rateLimited) break;
+
+    const { passport, destination, daysSince, category } = pairsToProcess[i];
+
+    // Progress indicator
+    if (i > 0 && i % 100 === 0) {
+      const percent = (i / pairsToProcess.length * 100).toFixed(1);
+      console.log(`[${percent}%] Processed ${i}/${pairsToProcess.length} (${updated} updated, ${errors} errors)`);
     }
 
-    // Start from saved destination index if resuming current passport
-    const startDestIdx = (pIdx === progress.passportIndex) ? progress.destinationIndex : 0;
+    const result = await checkVisaRequirement(passport, destination);
+    requestsThisRun++;
 
-    for (let dIdx = startDestIdx; dIdx < ALL_COUNTRIES.length; dIdx++) {
-      if (rateLimited || requestsThisRun >= REQUESTS_PER_RUN) break;
-
-      const destination = ALL_COUNTRIES[dIdx];
-      if (passport === destination) continue;
-
-      const result = await checkVisaRequirement(passport, destination);
-      requestsThisRun++;
-      progress.totalRequestsThisMonth++;
-
-      if (result?.rateLimited) {
-        console.log('\n!! Rate limit hit - stopping');
-        rateLimited = true;
-        break;
-      }
-
-      if (result) {
-        data.rules[passport][destination] = result;
-        updated++;
-        process.stdout.write('.');
-      } else {
-        errors++;
-        process.stdout.write('x');
-      }
-
-      // Update progress
-      progress.passportIndex = pIdx;
-      progress.destinationIndex = dIdx + 1;
-
-      // Save periodically
-      if (requestsThisRun % SAVE_INTERVAL === 0) {
-        saveProgress(progress);
-        saveData(data);
-        console.log(`\n  [Saved] ${requestsThisRun} requests this run, ${updated} updated`);
-      }
-
-      await sleep(REQUEST_DELAY_MS);
+    if (result?.rateLimited) {
+      console.log('\n!! Rate limit hit - stopping');
+      rateLimited = true;
+      break;
     }
 
-    // Completed this passport, move to next
-    if (!rateLimited && requestsThisRun < REQUESTS_PER_RUN) {
-      progress.passportIndex = pIdx + 1;
-      progress.destinationIndex = 0;
-      console.log(`\n  Completed ${passport}`);
+    if (result) {
+      // Initialize passport if needed
+      if (!data.rules[passport]) {
+        data.rules[passport] = {};
+      }
+      data.rules[passport][destination] = result;
+      updated++;
+      categoriesToProcess[category]++;
+      process.stdout.write('.');
+    } else {
+      errors++;
+      process.stdout.write('x');
     }
+
+    // Save periodically
+    if (requestsThisRun % SAVE_INTERVAL === 0) {
+      saveData(data);
+      console.log(`\n  [Saved] ${requestsThisRun} requests, ${updated} updated`);
+    }
+
+    await sleep(REQUEST_DELAY_MS);
   }
 
   // Final save
-  saveProgress(progress);
   saveData(data);
 
-  // Calculate stats
+  // Calculate final stats
   const passportsCovered = Object.keys(data.rules).length;
   const totalRules = Object.values(data.rules).reduce((sum, dests) => sum + Object.keys(dests).length, 0);
 
   console.log();
-  console.log('=== Summary ===');
-  console.log(`Requests this run: ${requestsThisRun}`);
-  console.log(`Updated: ${updated}`);
+  console.log();
+  console.log('==============================================');
+  console.log('  REFRESH COMPLETE');
+  console.log('==============================================');
+  console.log();
+  console.log('=== This Run ===');
+  console.log(`Requests made: ${requestsThisRun}`);
+  console.log(`Entries updated: ${updated}`);
   console.log(`Errors: ${errors}`);
   console.log(`Rate limited: ${rateLimited ? 'YES' : 'No'}`);
   console.log();
-  console.log('=== Progress ===');
-  console.log(`Current month: ${currentMonth}`);
-  console.log(`Total requests this month: ${progress.totalRequestsThisMonth}`);
-  console.log(`Next passport: ${PRIORITY_PASSPORTS[progress.passportIndex] || 'DONE'}`);
-  console.log(`Passports fully refreshed: ${progress.passportIndex}/${PRIORITY_PASSPORTS.length}`);
+  console.log('=== Categories Refreshed ===');
+  console.log(`Missing (filled gaps): ${categoriesToProcess.missing}`);
+  console.log(`Critical (60+ days): ${categoriesToProcess.critical}`);
+  console.log(`Stale (30-60 days): ${categoriesToProcess.stale}`);
+  console.log();
+  console.log('=== Remaining Queue ===');
+  const remaining = queue.length - requestsThisRun;
+  console.log(`Still need refresh: ${remaining.toLocaleString()} entries`);
+  console.log(`Estimated runs to clear: ${Math.ceil(remaining / REQUESTS_PER_RUN)}`);
   console.log();
   console.log('=== Database Status ===');
   console.log(`Passports in DB: ${passportsCovered}`);
-  console.log(`Total rules in DB: ${totalRules}`);
+  console.log(`Total rules in DB: ${totalRules.toLocaleString()}`);
   console.log();
 
-  // Estimate time for this run
-  const estimatedTime = Math.ceil(requestsThisRun * REQUEST_DELAY_MS / 1000 / 60);
-  console.log(`Run time: ~${estimatedTime} minutes`);
+  // Estimate refresh cycle
+  const monthsForFullCycle = Math.ceil(stats.total / REQUESTS_PER_RUN);
+  console.log('=== Refresh Cycle Estimate ===');
+  console.log(`Full database: ${stats.total.toLocaleString()} pairs`);
+  console.log(`Monthly capacity: ${REQUESTS_PER_RUN.toLocaleString()} requests`);
+  console.log(`Full cycle time: ~${monthsForFullCycle} months`);
+  console.log();
+
+  // Runtime estimate
+  const runtimeMinutes = Math.ceil(requestsThisRun * REQUEST_DELAY_MS / 1000 / 60);
+  console.log(`This run took: ~${runtimeMinutes} minutes`);
 }
 
 main().catch(error => {
