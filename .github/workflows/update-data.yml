@@ -1,4 +1,4 @@
-name: Update Visa Data
+name: Smart Visa Data Update
 
 on:
   schedule:
@@ -8,7 +8,7 @@ on:
     # Allow manual trigger
 
 jobs:
-  update-visa-data:
+  smart-update:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,15 +20,15 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run update script
+      - name: Run smart update script
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
-        run: node scripts/update-visa-data.js
+        run: node scripts/smart-update.js
 
       - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/
-          git diff --staged --quiet || git commit -m "Auto-update visa data $(date +'%Y-%m-%d')"
+          git diff --staged --quiet || git commit -m "Smart update visa data $(date +'%Y-%m-%d')"
           git push
