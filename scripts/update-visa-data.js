@@ -88,8 +88,23 @@ async function checkVisaRequirement(passport, destination, retryCount = 0) {
     }
 
     const data = await response.json();
+
+    // Check for quota exceeded error
+    if (data.message && (data.message.includes('exceeded') || data.message.includes('quota'))) {
+      console.log(`\n!! QUOTA EXCEEDED - stopping to preserve existing data`);
+      return { quotaExceeded: true };
+    }
+
+    const requirement = normalizeRequirement(data.requirement || data.visa_requirement);
+
+    // Don't return "unknown" - it would overwrite good data
+    if (requirement === 'unknown') {
+      console.log(`  API returned unrecognized format for ${passport}->${destination}:`, JSON.stringify(data));
+      return null;
+    }
+
     return {
-      requirement: normalizeRequirement(data.requirement || data.visa_requirement),
+      requirement,
       duration: data.duration || data.stay_duration || data.allowed_stay || null,
       notes: data.notes || data.additional_info || null,
     };
@@ -195,18 +210,25 @@ async function main() {
 
   let updated = 0;
   let unchanged = 0;
-  let errors = 0;
+  let skipped = 0;
   let rateLimited = false;
+  let quotaExceeded = false;
   let actualRequests = 0;
 
   for (const [passport, destination] of pairsToCheck) {
-    if (rateLimited) break;
+    if (rateLimited || quotaExceeded) break;
 
     const result = await checkVisaRequirement(passport, destination);
     actualRequests++;
 
     if (result?.rateLimited) {
       rateLimited = true;
+      break;
+    }
+
+    if (result?.quotaExceeded) {
+      quotaExceeded = true;
+      console.log('!! Stopping to preserve existing data - quota exceeded');
       break;
     }
 
@@ -230,25 +252,33 @@ async function main() {
         unchanged++;
       }
     } else {
-      console.log(`[ERROR] ${passport}->${destination}`);
-      errors++;
+      // null means API error or unrecognized format - skip, don't overwrite
+      console.log(`[SKIPPED] ${passport}->${destination} (API error or unrecognized format)`);
+      skipped++;
     }
 
     await sleep(REQUEST_DELAY_MS);
   }
 
-  // Save progress
-  const nextIndex = rateLimited ? startIndex : (startIndex + actualRequests) % PRIORITY_PAIRS.length;
+  // Save progress - don't advance if quota exceeded (will retry next run)
+  const nextIndex = (rateLimited || quotaExceeded) ? startIndex : (startIndex + actualRequests) % PRIORITY_PAIRS.length;
   saveProgress(nextIndex);
-  saveData(data);
+
+  // Only save data if we actually updated something
+  if (updated > 0) {
+    saveData(data);
+  } else {
+    console.log('\nNo updates made - preserving existing data');
+  }
 
   console.log();
   console.log('=== Summary ===');
   console.log(`Requests made: ${actualRequests}`);
   console.log(`Updated: ${updated}`);
   console.log(`Unchanged: ${unchanged}`);
-  console.log(`Errors: ${errors}`);
+  console.log(`Skipped: ${skipped}`);
   console.log(`Rate limited: ${rateLimited ? 'YES' : 'No'}`);
+  console.log(`Quota exceeded: ${quotaExceeded ? 'YES' : 'No'}`);
   console.log(`Next run starts at index: ${nextIndex}`);
 }
 
