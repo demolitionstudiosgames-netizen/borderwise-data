@@ -16,24 +16,34 @@ const API_URL = `https://api.currencybeacon.com/v1/latest?api_key=${API_KEY}&bas
 const RATES_PATH = path.join(__dirname, '..', 'data', 'currency-rates.json');
 const VERSION_PATH = path.join(__dirname, '..', 'data', 'currency-version.json');
 
-// Target currencies — the most-used currencies covering all major travel destinations
+// Target currencies — full coverage for all 195 countries in the app
 const TARGET_CURRENCIES = [
   // Major
   'USD', 'EUR', 'GBP', 'JPY', 'CHF', 'CAD', 'AUD', 'NZD',
-  // Asia
-  'CNY', 'HKD', 'SGD', 'KRW', 'INR', 'THB', 'TWD', 'MYR',
+  // Asia & Pacific
+  'CNY', 'HKD', 'MOP', 'SGD', 'KRW', 'KPW', 'INR', 'THB', 'TWD', 'MYR',
   'IDR', 'PHP', 'VND', 'PKR', 'BDT', 'LKR', 'MMK', 'NPR', 'KZT',
+  'KHR', 'LAK', 'MNT', 'BND', 'KGS', 'TJS', 'TMT', 'UZS', 'AFN',
+  'MVR', 'BTN',
+  // Oceania
+  'WST', 'TOP', 'FJD', 'PGK', 'SBD', 'VUV',
   // Middle East
   'AED', 'SAR', 'QAR', 'KWD', 'BHD', 'OMR', 'JOD', 'ILS', 'TRY',
+  'IQD', 'IRR', 'LBP', 'SYP', 'YER', 'AZN', 'AMD',
   // Europe (non-EUR)
   'SEK', 'NOK', 'DKK', 'PLN', 'CZK', 'HUF', 'RON', 'BGN',
-  'RUB', 'UAH', 'GEL', 'ISK',
+  'RUB', 'UAH', 'GEL', 'ISK', 'BYN', 'MDL', 'ALL', 'MKD', 'RSD', 'BAM',
   // Africa
   'ZAR', 'NGN', 'EGP', 'GHS', 'KES', 'MAD', 'TND', 'XOF', 'XAF',
+  'DZD', 'AOA', 'ETB', 'TZS', 'UGX', 'MZN', 'ZMW', 'ZWL', 'BWP',
+  'NAD', 'MWK', 'SZL', 'LSL', 'MGA', 'MUR', 'SCR', 'KMF', 'DJF',
+  'ERN', 'SDG', 'SSP', 'LYD', 'GMD', 'GNF', 'SLL', 'LRD', 'CVE',
+  'STN', 'BIF', 'RWF', 'SOS', 'MRU', 'CDF',
   // Americas
   'MXN', 'BRL', 'ARS', 'CLP', 'COP', 'PEN', 'DOP', 'JMD', 'TTD',
-  // Oceania
-  'FJD',
+  'UYU', 'PYG', 'BOB', 'VES', 'GYD', 'SRD', 'GTQ', 'HNL', 'NIO',
+  'CRC', 'PAB', 'CUP', 'HTG', 'BBD', 'BSD', 'BZD', 'SVC', 'XCD',
+  'KYD', 'AWG',
 ];
 
 async function main() {
