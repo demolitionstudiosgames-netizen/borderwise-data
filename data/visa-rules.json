@@ -1,7 +1,7 @@
 {
   "version": "3.0.0",
-  "lastUpdated": "2026-06-01T06:57:05.100Z",
-  "dataVersion": 1780297025100,
+  "lastUpdated": "2026-07-01T06:27:34.749Z",
+  "dataVersion": 1782887254749,
   "source": "Passport Index Dataset (ilyankou/passport-index-dataset)",
   "notes": "Comprehensive data for 199 passports - FREE open source data",
   "rules": {
@@ -14377,39 +14377,53 @@
         "source": "rapidapi-pro"
       },
       "SL": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:24:52.324Z",
+        "source": "rapidapi-pro"
       },
       "SG": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:24:53.557Z",
+        "source": "rapidapi-pro"
       },
       "SK": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:24:54.788Z",
+        "source": "rapidapi-pro"
       },
       "SI": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:24:56.056Z",
+        "source": "rapidapi-pro"
       },
       "SB": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:24:57.281Z",
+        "source": "rapidapi-pro"
       },
       "SO": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:24:58.508Z",
+        "source": "rapidapi-pro"
       },
       "ZA": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:24:59.726Z",
+        "source": "rapidapi-pro"
       },
       "KR": {
         "requirement": "unknown",
@@ -14419,19 +14433,25 @@
         "source": "rapidapi-pro"
       },
       "SS": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:00.977Z",
+        "source": "rapidapi-pro"
       },
       "ES": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:02.210Z",
+        "source": "rapidapi-pro"
       },
       "LK": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:03.428Z",
+        "source": "rapidapi-pro"
       },
       "VC": {
         "requirement": "unknown",
@@ -14441,159 +14461,221 @@
         "source": "rapidapi-pro"
       },
       "SD": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:04.701Z",
+        "source": "rapidapi-pro"
       },
       "SR": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:05.919Z",
+        "source": "rapidapi-pro"
       },
       "SE": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:07.142Z",
+        "source": "rapidapi-pro"
       },
       "CH": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:08.368Z",
+        "source": "rapidapi-pro"
       },
       "SY": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:09.594Z",
+        "source": "rapidapi-pro"
       },
       "TW": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.049Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:10.820Z",
+        "source": "rapidapi-pro"
       },
       "TJ": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:12.024Z",
+        "source": "rapidapi-pro"
       },
       "TZ": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:13.266Z",
+        "source": "rapidapi-pro"
       },
       "TH": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:14.489Z",
+        "source": "rapidapi-pro"
       },
       "TL": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:15.697Z",
+        "source": "rapidapi-pro"
       },
       "TG": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:16.968Z",
+        "source": "rapidapi-pro"
       },
       "TO": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:18.197Z",
+        "source": "rapidapi-pro"
       },
       "TT": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:19.429Z",
+        "source": "rapidapi-pro"
       },
       "TN": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:20.651Z",
+        "source": "rapidapi-pro"
       },
       "TM": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:23.212Z",
+        "source": "rapidapi-pro"
       },
       "TV": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:24.469Z",
+        "source": "rapidapi-pro"
       },
       "TR": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:21.976Z",
+        "source": "rapidapi-pro"
       },
       "UG": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:25.718Z",
+        "source": "rapidapi-pro"
       },
       "UA": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:26.958Z",
+        "source": "rapidapi-pro"
       },
       "AE": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:28.199Z",
+        "source": "rapidapi-pro"
       },
       "GB": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:29.564Z",
+        "source": "rapidapi-pro"
       },
       "US": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:30.865Z",
+        "source": "rapidapi-pro"
       },
       "UY": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:32.086Z",
+        "source": "rapidapi-pro"
       },
       "UZ": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:33.348Z",
+        "source": "rapidapi-pro"
       },
       "VU": {
-        "requirement": "visa-free",
-        "duration": 120,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:34.569Z",
+        "source": "rapidapi-pro"
       },
       "VA": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:35.784Z",
+        "source": "rapidapi-pro"
       },
       "VE": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:37.074Z",
+        "source": "rapidapi-pro"
       },
       "VN": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:38.280Z",
+        "source": "rapidapi-pro"
       },
       "YE": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:39.505Z",
+        "source": "rapidapi-pro"
       },
       "ZM": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:40.724Z",
+        "source": "rapidapi-pro"
       },
       "ZW": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.051Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:41.986Z",
+        "source": "rapidapi-pro"
       },
       "AF": {
         "requirement": "unknown",
@@ -29485,394 +29567,550 @@
     },
     "CM": {
       "AL": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:44.453Z",
+        "source": "rapidapi-pro"
       },
       "DZ": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:45.684Z",
+        "source": "rapidapi-pro"
       },
       "AD": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:46.912Z",
+        "source": "rapidapi-pro"
       },
       "AO": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:48.136Z",
+        "source": "rapidapi-pro"
       },
       "AG": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:49.358Z",
+        "source": "rapidapi-pro"
       },
       "AR": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:50.570Z",
+        "source": "rapidapi-pro"
       },
       "AM": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:51.780Z",
+        "source": "rapidapi-pro"
       },
       "AU": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:53.012Z",
+        "source": "rapidapi-pro"
       },
       "AT": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:54.268Z",
+        "source": "rapidapi-pro"
       },
       "AZ": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:55.496Z",
+        "source": "rapidapi-pro"
       },
       "BS": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:56.710Z",
+        "source": "rapidapi-pro"
       },
       "BH": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:57.967Z",
+        "source": "rapidapi-pro"
       },
       "BD": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:59.190Z",
+        "source": "rapidapi-pro"
       },
       "BB": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:00.498Z",
+        "source": "rapidapi-pro"
       },
       "BY": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:01.765Z",
+        "source": "rapidapi-pro"
       },
       "BE": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:02.983Z",
+        "source": "rapidapi-pro"
       },
       "BZ": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:04.296Z",
+        "source": "rapidapi-pro"
       },
       "BJ": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:05.578Z",
+        "source": "rapidapi-pro"
       },
       "BT": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:06.793Z",
+        "source": "rapidapi-pro"
       },
       "BO": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:08.042Z",
+        "source": "rapidapi-pro"
       },
       "BA": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:09.264Z",
+        "source": "rapidapi-pro"
       },
       "BW": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:10.485Z",
+        "source": "rapidapi-pro"
       },
       "BR": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:11.714Z",
+        "source": "rapidapi-pro"
       },
       "BN": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:12.961Z",
+        "source": "rapidapi-pro"
       },
       "BG": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:14.179Z",
+        "source": "rapidapi-pro"
       },
       "BF": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:15.395Z",
+        "source": "rapidapi-pro"
       },
       "BI": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:16.602Z",
+        "source": "rapidapi-pro"
       },
       "KH": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:17.862Z",
+        "source": "rapidapi-pro"
       },
       "CA": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:19.075Z",
+        "source": "rapidapi-pro"
       },
       "CV": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:20.295Z",
+        "source": "rapidapi-pro"
       },
       "CF": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:21.515Z",
+        "source": "rapidapi-pro"
       },
       "TD": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:22.745Z",
+        "source": "rapidapi-pro"
       },
       "CL": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:23.956Z",
+        "source": "rapidapi-pro"
       },
       "CN": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:25.171Z",
+        "source": "rapidapi-pro"
       },
       "CO": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:26.389Z",
+        "source": "rapidapi-pro"
       },
       "KM": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:27.649Z",
+        "source": "rapidapi-pro"
       },
       "CG": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:28.967Z",
+        "source": "rapidapi-pro"
       },
       "CD": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:30.216Z",
+        "source": "rapidapi-pro"
       },
       "CR": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:31.430Z",
+        "source": "rapidapi-pro"
       },
       "CI": {
-        "requirement": "eta",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:32.649Z",
+        "source": "rapidapi-pro"
       },
       "HR": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:33.863Z",
+        "source": "rapidapi-pro"
       },
       "CU": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:35.077Z",
+        "source": "rapidapi-pro"
       },
       "CY": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:36.316Z",
+        "source": "rapidapi-pro"
       },
       "CZ": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:37.541Z",
+        "source": "rapidapi-pro"
       },
       "DK": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:38.763Z",
+        "source": "rapidapi-pro"
       },
       "DJ": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:40.009Z",
+        "source": "rapidapi-pro"
       },
       "DM": {
-        "requirement": "visa-free",
-        "duration": 180,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:41.258Z",
+        "source": "rapidapi-pro"
       },
       "DO": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:42.469Z",
+        "source": "rapidapi-pro"
       },
       "EC": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:43.687Z",
+        "source": "rapidapi-pro"
       },
       "EG": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:44.916Z",
+        "source": "rapidapi-pro"
       },
       "SV": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:46.143Z",
+        "source": "rapidapi-pro"
       },
       "GQ": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:47.371Z",
+        "source": "rapidapi-pro"
       },
       "ER": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:48.595Z",
+        "source": "rapidapi-pro"
       },
       "EE": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:49.838Z",
+        "source": "rapidapi-pro"
       },
       "SZ": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:51.056Z",
+        "source": "rapidapi-pro"
       },
       "ET": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:52.312Z",
+        "source": "rapidapi-pro"
       },
       "FJ": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:53.540Z",
+        "source": "rapidapi-pro"
       },
       "FI": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:54.747Z",
+        "source": "rapidapi-pro"
       },
       "FR": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:56.031Z",
+        "source": "rapidapi-pro"
       },
       "GA": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:57.251Z",
+        "source": "rapidapi-pro"
       },
       "GM": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:58.474Z",
+        "source": "rapidapi-pro"
       },
       "GE": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:26:59.691Z",
+        "source": "rapidapi-pro"
       },
       "DE": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:00.907Z",
+        "source": "rapidapi-pro"
       },
       "GH": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:02.121Z",
+        "source": "rapidapi-pro"
       },
       "GR": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:03.340Z",
+        "source": "rapidapi-pro"
       },
       "GD": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:04.595Z",
+        "source": "rapidapi-pro"
       },
       "GT": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:05.810Z",
+        "source": "rapidapi-pro"
       },
       "GN": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:07.018Z",
+        "source": "rapidapi-pro"
       },
       "GW": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:08.254Z",
+        "source": "rapidapi-pro"
       },
       "GY": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:09.599Z",
+        "source": "rapidapi-pro"
       },
       "HT": {
-        "requirement": "visa-free",
-        "duration": 90,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:10.826Z",
+        "source": "rapidapi-pro"
       },
       "HN": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:12.083Z",
+        "source": "rapidapi-pro"
       },
       "HK": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:13.295Z",
+        "source": "rapidapi-pro"
       },
       "HU": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:14.518Z",
+        "source": "rapidapi-pro"
       },
       "IS": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:15.737Z",
+        "source": "rapidapi-pro"
       },
       "IN": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:16.958Z",
+        "source": "rapidapi-pro"
       },
       "ID": {
-        "requirement": "e-visa",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:18.182Z",
+        "source": "rapidapi-pro"
       },
       "IR": {
-        "requirement": "visa-on-arrival",
-        "duration": 30,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "requirement": "unknown",
+        "duration": null,
+        "notes": null,
+        "lastChecked": "2026-07-01T06:27:19.427Z",
+        "source": "rapidapi-pro"
       },
       "IQ": {
         "requirement": "e-visa",
@@ -30470,9 +30708,11 @@
         "lastChecked": "2026-01-01T18:39:49.061Z"
       },
       "AF": {
-        "requirement": "visa-required",
+        "requirement": "unknown",
         "duration": null,
-        "lastChecked": "2026-01-01T18:39:49.061Z"
+        "notes": null,
+        "lastChecked": "2026-07-01T06:25:43.216Z",
+        "source": "rapidapi-pro"
       }
     },
     "CA": {
