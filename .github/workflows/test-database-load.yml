@@ -33,6 +33,11 @@ jobs:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
         run: node scripts/test-database-load.js
 
+      # Gate: blocks the commit if unknowns rose, pairs dropped, or the JSON is
+      # malformed / schema-invalid.
+      - name: Validate data
+        run: node scripts/validate-data.js
+
       - name: Commit results
         run: |
           git add data/

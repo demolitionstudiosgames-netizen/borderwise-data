@@ -2,10 +2,17 @@ name: Pro Tier Refresh (3,000/month)
 
 on:
   workflow_dispatch:
-    # Manual trigger for monthly refresh
-  schedule:
-    # Run on the 1st of each month at 2:00 AM UTC
-    - cron: '0 2 1 * *'
+    # Manual trigger only.
+  # SCHEDULE DISABLED 2026-11-05 (data repair, branch fix/data-repair).
+  # From Mar to Nov 2026 every monthly run wrote "unknown" over ~120 good
+  # pairs (1,051 in total, incl. UK -> Spain/US/Japan). Cause: the script read
+  # a response field that the Travel Buddy v2 API does not return, and the
+  # RapidAPI key is on the free 120-requests/month plan, not the paid Pro plan.
+  # The script is now guarded and validate-data.js gates the commit, but keep
+  # the schedule off until a manual run has been checked to produce real data.
+  # To re-enable later, restore:
+  # schedule:
+  #   - cron: '0 2 1 * *'   # 1st of each month at 2:00 AM UTC
 
 permissions:
   contents: write
@@ -30,12 +37,21 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Run Pro tier refresh
+        id: refresh
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
         run: node scripts/pro-tier-refresh.js
 
-      - name: Commit results
+      # Gate: blocks the commit if unknowns rose, pairs dropped, or the JSON is
+      # malformed / schema-invalid. Runs even if the refresh step failed so that
+      # valid partial progress can still be kept.
+      - name: Validate data
+        id: validate
         if: always()
+        run: node scripts/validate-data.js
+
+      - name: Commit results
+        if: always() && steps.validate.outcome == 'success'
         run: |
           git add data/
           if ! git diff --staged --quiet; then

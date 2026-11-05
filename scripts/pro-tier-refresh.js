@@ -24,19 +24,27 @@
  * 2. Entries 30-60 days old (STALE - refresh if quota remains)
  * 3. Entries <30 days old (FRESH - skip entirely)
  * 4. Missing entries (no data yet - fill gaps)
+ *
+ * DATA-SAFETY RULES (added 2026-11-05 after Mar-Nov 2026 runs overwrote ~1,051
+ * good pairs with "unknown"):
+ * - A result is written ONLY if the API response has the documented v2 shape
+ *   (data.visa_rules.primary_rule) and maps to a known requirement type.
+ * - "unknown", empty, error, quota, auth, demo and unexpected-shape responses
+ *   are failures: logged and skipped. Existing data is never touched.
+ * - 401/403/429 or a quota message stops the run immediately.
+ * - If nothing was successfully updated, nothing is saved (no version bump).
+ * - If every attempted request failed, the script exits non-zero so the
+ *   workflow shows red instead of silently "succeeding".
+ * - scripts/validate-data.js runs in the workflow before any commit.
  */
 
 const fs = require('fs');
 const path = require('path');
+const { parseVisaCheckResponse, VALID_REQUIREMENTS } = require('./lib/travel-buddy');
 
 const API_URL = 'https://visa-requirement.p.rapidapi.com/v2/visa/check';
 const API_HOST = 'visa-requirement.p.rapidapi.com';
 const API_KEY = process.env.RAPIDAPI_KEY;
-
-if (!API_KEY) {
-  console.error('ERROR: RAPIDAPI_KEY environment variable is not set');
-  process.exit(1);
-}
 
 // All 199 country codes
 const ALL_COUNTRIES = [
@@ -97,23 +105,20 @@ function getDaysSinceUpdate(lastChecked) {
 
 function loadData() {
   const dataPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
-  try {
-    return JSON.parse(fs.readFileSync(dataPath, 'utf8'));
-  } catch {
-    return {
-      version: '3.0.0',
-      lastUpdated: null,
-      dataVersion: 0,
-      source: 'Mixed sources',
-      rules: {},
-    };
+  // Fail hard on a missing/corrupt file: starting from an empty object would
+  // wipe the database on the next save.
+  const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
+  if (!data || typeof data.rules !== 'object' || data.rules === null) {
+    throw new Error('data/visa-rules.json has no "rules" object - refusing to run');
   }
+  return data;
 }
 
 function saveData(data) {
   const dataPath = path.join(__dirname, '..', 'data', 'visa-rules.json');
-  data.lastUpdated = new Date().toISOString();
+  // dataVersion (ms since epoch) and lastUpdated describe the same instant.
   data.dataVersion = Date.now();
+  data.lastUpdated = new Date(data.dataVersion).toISOString();
   fs.writeFileSync(dataPath, JSON.stringify(data, null, 2));
 
   const versionPath = path.join(__dirname, '..', 'data', 'version.json');
@@ -196,78 +201,90 @@ function generateRefreshQueue(data) {
   return { queue, stats };
 }
 
+/**
+ * Call the API for one pair.
+ * Returns one of:
+ *   { result: {requirement, duration, notes, lastChecked, source} }  - good data
+ *   { failure: 'reason' }                                            - skip pair
+ *   { stop: 'reason' }                                               - stop run (quota/auth)
+ */
 async function checkVisaRequirement(passport, destination, retryCount = 0) {
+  let response;
   try {
-    const response = await fetch(API_URL, {
+    response = await fetch(API_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
         'x-rapidapi-host': API_HOST,
         'x-rapidapi-key': API_KEY,
       },
-      body: new URLSearchParams({
+      body: JSON.stringify({
         passport: passport.toUpperCase(),
         destination: destination.toUpperCase(),
-      }).toString(),
+      }),
     });
-
-    if (response.status === 429) {
-      if (retryCount < MAX_RETRIES) {
-        const backoffMs = 2000 * Math.pow(BACKOFF_MULTIPLIER, retryCount);
-        console.log(`  Rate limited, waiting ${backoffMs/1000}s...`);
-        await sleep(backoffMs);
-        return checkVisaRequirement(passport, destination, retryCount + 1);
-      }
-      return { rateLimited: true };
-    }
-
-    if (!response.ok) {
-      console.warn(`  Error ${passport}->${destination}: ${response.status}`);
-      return null;
-    }
-
-    const data = await response.json();
-    return {
-      requirement: normalizeRequirement(data.requirement || data.visa_requirement),
-      duration: data.duration || data.stay_duration || data.allowed_stay || null,
-      notes: data.notes || data.additional_info || null,
-      lastChecked: new Date().toISOString(),
-      source: 'rapidapi-pro',
-    };
   } catch (error) {
     if (retryCount < MAX_RETRIES) {
-      const backoffMs = 1000 * Math.pow(BACKOFF_MULTIPLIER, retryCount);
+      await sleep(1000 * Math.pow(BACKOFF_MULTIPLIER, retryCount));
+      return checkVisaRequirement(passport, destination, retryCount + 1);
+    }
+    return { failure: `network error: ${error.message}` };
+  }
+
+  if (response.status === 401 || response.status === 403) {
+    return { stop: `HTTP ${response.status} (missing/invalid key or not subscribed)` };
+  }
+  if (response.status === 429) {
+    // Free plan overage and paid-plan concurrency both return 429. Retry a few
+    // times for concurrency, then treat as quota exhausted.
+    if (retryCount < MAX_RETRIES) {
+      const backoffMs = 2000 * Math.pow(BACKOFF_MULTIPLIER, retryCount);
+      console.log(`  Rate limited, waiting ${backoffMs / 1000}s...`);
       await sleep(backoffMs);
       return checkVisaRequirement(passport, destination, retryCount + 1);
     }
-    console.error(`  Failed ${passport}->${destination}: ${error.message}`);
-    return null;
+    return { stop: 'HTTP 429 (quota used up or rate limited)' };
   }
-}
+  if (response.status >= 500 && retryCount < MAX_RETRIES) {
+    await sleep(2000 * Math.pow(BACKOFF_MULTIPLIER, retryCount));
+    return checkVisaRequirement(passport, destination, retryCount + 1);
+  }
+  if (!response.ok) {
+    return { failure: `HTTP ${response.status}` };
+  }
 
-function normalizeRequirement(requirement) {
-  if (!requirement) return 'unknown';
-  const normalized = requirement.toLowerCase().trim();
+  let body;
+  try {
+    body = await response.json();
+  } catch (error) {
+    return { failure: `invalid JSON: ${error.message}` };
+  }
 
-  if (normalized.includes('visa free') || normalized.includes('visa-free') || normalized === 'free') {
-    return 'visa-free';
+  const parsed = parseVisaCheckResponse(body);
+  if (!parsed.ok) {
+    return parsed.fatal ? { stop: parsed.reason } : { failure: parsed.reason };
   }
-  if (normalized.includes('visa on arrival') || normalized.includes('voa')) {
-    return 'visa-on-arrival';
+  if (!VALID_REQUIREMENTS.includes(parsed.requirement)) {
+    return { failure: `invalid requirement ${parsed.requirement}` };
   }
-  if (normalized.includes('e-visa') || normalized.includes('evisa') || normalized.includes('electronic visa')) {
-    return 'e-visa';
-  }
-  if (normalized.includes('eta') || normalized.includes('electronic travel')) {
-    return 'eta';
-  }
-  if (normalized.includes('required') || normalized.includes('visa')) {
-    return 'visa-required';
-  }
-  return 'unknown';
+
+  return {
+    result: {
+      requirement: parsed.requirement,
+      duration: parsed.duration,
+      notes: parsed.notes,
+      lastChecked: new Date().toISOString(),
+      source: 'rapidapi-travel-buddy-v2',
+    },
+  };
 }
 
 async function main() {
+  if (!API_KEY) {
+    console.error('ERROR: RAPIDAPI_KEY environment variable is not set');
+    process.exit(1);
+  }
+
   console.log('==============================================');
   console.log('  Pro Tier SMART Refresh ($4.99/month)');
   console.log('==============================================');
@@ -304,6 +321,8 @@ async function main() {
   let updated = 0;
   let errors = 0;
   let rateLimited = false;
+  let stopReason = null;
+  const failureReasons = {};
 
   const categoriesToProcess = { missing: 0, critical: 0, stale: 0 };
   const pairsToProcess = queue.slice(0, REQUESTS_PER_RUN);
@@ -322,16 +341,18 @@ async function main() {
       console.log(`[${percent}%] Processed ${i}/${pairsToProcess.length} (${updated} updated, ${errors} errors)`);
     }
 
-    const result = await checkVisaRequirement(passport, destination);
+    const outcome = await checkVisaRequirement(passport, destination);
     requestsThisRun++;
 
-    if (result?.rateLimited) {
-      console.log('\n!! Rate limit hit - stopping');
+    if (outcome.stop) {
+      console.log(`\n!! Stopping run: ${outcome.stop}`);
       rateLimited = true;
+      stopReason = outcome.stop;
       break;
     }
 
-    if (result) {
+    const result = outcome.result;
+    if (result && VALID_REQUIREMENTS.includes(result.requirement)) {
       // Initialize passport if needed
       if (!data.rules[passport]) {
         data.rules[passport] = {};
@@ -341,12 +362,16 @@ async function main() {
       categoriesToProcess[category]++;
       process.stdout.write('.');
     } else {
+      // Failure: log and skip. Existing entry (if any) is left untouched.
+      const reason = outcome.failure || 'no usable result';
+      failureReasons[reason] = (failureReasons[reason] || 0) + 1;
+      if (errors < 10) console.log(`\n  SKIP ${passport}->${destination}: ${reason}`);
       errors++;
       process.stdout.write('x');
     }
 
-    // Save periodically
-    if (requestsThisRun % SAVE_INTERVAL === 0) {
+    // Save periodically (only once something real has changed)
+    if (updated > 0 && requestsThisRun % SAVE_INTERVAL === 0) {
       saveData(data);
       console.log(`\n  [Saved] ${requestsThisRun} requests, ${updated} updated`);
     }
@@ -354,8 +379,12 @@ async function main() {
     await sleep(REQUEST_DELAY_MS);
   }
 
-  // Final save
-  saveData(data);
+  // Final save - only if real data changed, so failed runs don't bump the version
+  if (updated > 0) {
+    saveData(data);
+  } else {
+    console.log('\nNo entries updated - data files left unchanged.');
+  }
 
   // Calculate final stats
   const passportsCovered = Object.keys(data.rules).length;
@@ -399,9 +428,27 @@ async function main() {
   // Runtime estimate
   const runtimeMinutes = Math.ceil(requestsThisRun * REQUEST_DELAY_MS / 1000 / 60);
   console.log(`This run took: ~${runtimeMinutes} minutes`);
+
+  if (errors > 0) {
+    console.log();
+    console.log('=== Failure reasons (skipped, existing data preserved) ===');
+    for (const [reason, count] of Object.entries(failureReasons)) console.log(`  ${count} x ${reason}`);
+  }
+  if (stopReason) console.log(`Stopped early: ${stopReason}`);
+
+  // Make a fully failed run visible in GitHub Actions (red X), instead of a
+  // green run that changed nothing.
+  if (requestsThisRun > 0 && updated === 0) {
+    console.error('\nERROR: no request produced usable data. Check the RapidAPI plan/key and the response shape.');
+    process.exitCode = 2;
+  }
 }
 
-main().catch(error => {
-  console.error('Script failed:', error);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch(error => {
+    console.error('Script failed:', error);
+    process.exit(1);
+  });
+}
+
+module.exports = { checkVisaRequirement };

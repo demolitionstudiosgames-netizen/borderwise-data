@@ -7,6 +7,9 @@ on:
   workflow_dispatch:
     # Allow manual trigger
 
+permissions:
+  contents: write
+
 jobs:
   smart-update:
     runs-on: ubuntu-latest
@@ -24,6 +27,11 @@ jobs:
         env:
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
         run: node scripts/smart-update.js
+
+      # Gate: blocks the commit if unknowns rose, pairs dropped, or the JSON is
+      # malformed / schema-invalid.
+      - name: Validate data
+        run: node scripts/validate-data.js
 
       - name: Commit and push changes
         run: |

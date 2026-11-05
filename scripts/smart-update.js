@@ -15,6 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { parseVisaCheckResponse } = require('./lib/travel-buddy');
 
 const API_URL = 'https://visa-requirement.p.rapidapi.com/v2/visa/check';
 const API_HOST = 'visa-requirement.p.rapidapi.com';
@@ -96,8 +97,8 @@ function saveLifecycle(lifecycle) {
  * Save visa rules data
  */
 function saveData(data) {
-  data.lastUpdated = new Date().toISOString();
   data.dataVersion = Date.now();
+  data.lastUpdated = new Date(data.dataVersion).toISOString();
   fs.writeFileSync(DATA_PATH, JSON.stringify(data, null, 2));
 
   fs.writeFileSync(VERSION_PATH, JSON.stringify({
@@ -160,31 +161,6 @@ function getPairsToUpdate(data, lifecycle) {
 }
 
 /**
- * Normalize visa requirement to standard format
- */
-function normalizeRequirement(requirement) {
-  if (!requirement) return 'unknown';
-  const normalized = requirement.toLowerCase().trim();
-
-  if (normalized.includes('visa free') || normalized.includes('visa-free') || normalized === 'free') {
-    return 'visa-free';
-  }
-  if (normalized.includes('visa on arrival') || normalized.includes('voa')) {
-    return 'visa-on-arrival';
-  }
-  if (normalized.includes('e-visa') || normalized.includes('evisa') || normalized.includes('electronic visa')) {
-    return 'e-visa';
-  }
-  if (normalized.includes('eta') || normalized.includes('electronic travel')) {
-    return 'eta';
-  }
-  if (normalized.includes('required') || normalized.includes('visa')) {
-    return 'visa-required';
-  }
-  return 'unknown';
-}
-
-/**
  * Sleep helper
  */
 async function sleep(ms) {
@@ -199,14 +175,14 @@ async function checkVisaRequirement(passport, destination, retryCount = 0) {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
         'x-rapidapi-host': API_HOST,
         'x-rapidapi-key': API_KEY,
       },
-      body: new URLSearchParams({
+      body: JSON.stringify({
         passport: passport.toUpperCase(),
         destination: destination.toUpperCase(),
-      }).toString(),
+      }),
     });
 
     if (response.status === 429) {
@@ -219,6 +195,11 @@ async function checkVisaRequirement(passport, destination, retryCount = 0) {
       return { rateLimited: true };
     }
 
+    if (response.status === 401 || response.status === 403) {
+      console.log(`\n!! HTTP ${response.status} (key/subscription problem) - stopping to preserve data`);
+      return { quotaExceeded: true };
+    }
+
     if (!response.ok) {
       console.warn(`  API error: ${response.status}`);
       return null;
@@ -226,24 +207,24 @@ async function checkVisaRequirement(passport, destination, retryCount = 0) {
 
     const responseData = await response.json();
 
-    // Check for quota exceeded
-    if (responseData.message && (responseData.message.includes('exceeded') || responseData.message.includes('quota'))) {
-      console.log(`\n!! QUOTA EXCEEDED - stopping to preserve data`);
-      return { quotaExceeded: true };
-    }
-
-    const requirement = normalizeRequirement(responseData.requirement || responseData.visa_requirement);
-
-    // NEVER return unknown - it would overwrite good data
-    if (requirement === 'unknown') {
-      console.log(`  Unrecognized API response:`, JSON.stringify(responseData).substring(0, 100));
+    // v2 response shape: data.visa_rules.primary_rule (see scripts/lib/travel-buddy.js)
+    const parsed = parseVisaCheckResponse(responseData);
+    if (!parsed.ok) {
+      if (parsed.fatal) {
+        console.log(`\n!! ${parsed.reason} - stopping to preserve data`);
+        return { quotaExceeded: true };
+      }
+      // NEVER return unknown - it would overwrite good data
+      console.log(`  Skipping: ${parsed.reason}`);
       return null;
     }
 
     return {
-      requirement,
-      duration: responseData.duration || responseData.stay_duration || responseData.allowed_stay || null,
-      notes: responseData.notes || responseData.additional_info || null,
+      requirement: parsed.requirement,
+      duration: parsed.duration,
+      notes: parsed.notes,
+      lastChecked: new Date().toISOString(),
+      source: 'rapidapi-travel-buddy-v2',
     };
   } catch (error) {
     if (retryCount < MAX_RETRIES) {
