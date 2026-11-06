@@ -1,0 +1,51 @@
+name: Weekly Visa Data Import (open sources)
+
+# Pulls the visafreely.com official-source dataset and the weekly Wikipedia
+# dataset (Riedel-David/Visa-requirements, published Mondays ~04:17 UTC),
+# merges them into data/visa-rules.json, validates, and commits.
+# If more than 3% of pairs would change, the import refuses and this run
+# FAILS, so GitHub emails the repo owner to review docs/last-import.md.
+
+on:
+  schedule:
+    - cron: '0 6 * * 2'   # Tuesdays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: visa-data
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Import from open sources
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/import-open-sources.js
+
+      - name: Validate data (gate)
+        run: node scripts/validate-data.js --baseline-ref HEAD
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/visa-rules.json data/version.json docs/last-import.md
+          if git diff --staged --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Weekly visa data import $(date +'%Y-%m-%d')"
+            git pull --rebase
+            git push
+          fi
